@@ -1,12 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = "sankimanki/lms-job"
-        DOCKER_TAG = "v1"
-        REGISTRY_CREDENTIALS = ""  // Jenkins credentials ID
-    }
-
     stages {
 
         stage('CODE QUALITY'){
