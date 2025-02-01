@@ -1,31 +1,29 @@
 pipeline {
     agent any
+
     environment {
-        // More detail: 
-        // https://jenkins.io/doc/book/pipeline/jenkinsfile/#usernames-and-passwords
-        NEXUS_CRED = credentials('nexus')
-   }
+        DOCKER_IMAGE = "sankimanki/lms-job"
+        DOCKER_TAG = "v1"
+        REGISTRY_CREDENTIALS = ""  // Jenkins credentials ID
+    }
 
     stages {
-        stage('Build') {
+
+        stage('CODE QUALITY'){
+
             steps {
-                echo 'Building..'
-                sh 'cd webapp && npm install && npm run build'
+                echo "SONAR ANALYSIS"
+                sudo docker run  --rm -e SONAR_HOST_URL="http://23.22.143.56:9000" -e SONAR_LOGIN="sqp_f5123cc25e50c9a0725daa92102f8e2cac3e7476"  -v ".:/usr/src" sonarsource/sonar-scanner-cli:5.0 -Dsonar.projectKey=lms-frontend
             }
         }
-        stage('Test') {
-            steps {
-                echo 'Testing..'
-                sh 'cd webapp && sudo docker container run --rm -e SONAR_HOST_URL="http://20.172.187.108:9000" -e SONAR_LOGIN="sqp_cae41e62e13793ff17d58483fb6fb82602fe2b48" -v ".:/usr/src" sonarsource/sonar-scanner-cli -Dsonar.projectKey=lms'
+
+        stage('Building a docker image') {
+
+            steps{
+                echo "Build of application"
+                docker build -t sankimanki/lms-job .
             }
         }
-        stage('Release') {
-            steps {
-                echo 'Release Nexus'
-                sh 'rm -rf *.zip'
-                sh 'cd webapp && zip dist-${BUILD_NUMBER}.zip -r dist'
-                sh 'cd webapp && curl -v -u $Username:$Password --upload-file dist-${BUILD_NUMBER}.zip http://20.172.187.108:8081/repository/lms/'
-            }
-        }
+
     }
 }
